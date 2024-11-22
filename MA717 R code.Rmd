@@ -1,0 +1,216 @@
+---
+title: 'MA717: Applied Regression and Experimental Data Analysis'
+author: "Assignment template "
+date: "Meghana Dhongadi Ashoka - 2310246 "
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+\textbf{Task 1: Data reading and simple exploration (25$\%$)}
+
+1.1. Read "College.csv" file into R with following command and use dim() and head() to check if you read the data correct. You should report the number of observations and the number of variables. **(5** $\%$)
+
+```{r, eval=TRUE}
+#read data
+mydata<-read.csv("College.csv", header=T, stringsAsFactors=TRUE)
+dim(mydata)
+head(mydata)
+```
+
+**Number of observations** - 775
+
+**Number of variables** - 17
+
+1.2. Use your registration number as random seed, generate a random subset of College data with sample size 700, name this new data as mynewdata. Use summary() to output the summarized information about mynewdata. Please report the number of private and public university and the number of Elite university and non-Elite university in this new data. **(12** $\%$)
+
+```{r, eval=TRUE}
+##using my registration number as random seed
+set.seed(2310246)
+
+#generating a random subset of College data with sample size 700
+index<-sample(775,size=700)
+mynewdata<-mydata[index, ]
+
+dim(mynewdata)
+
+#summarize mynewdata
+summary(mynewdata)
+
+#reporting the number of private and public university 
+private<-table(mynewdata$Private)
+cat('Number of Private universities: ',private['Yes'],'\n')
+cat('Number of Public universities: ',private['No'],'\n')
+
+#reporting the number of Elite university and non-Elite university
+elite<-table(mynewdata$Elite)
+cat('Number of Elite universities: ',elite['Yes'],'\n')
+cat('Number of non-Elite universities: ',elite['No'],'\n')
+```
+
+1.3. Use mynewdata, plot histogram plots of four variables "Outstate", "Room.Board", "Books" and "Personal". Give each plot a suitable title and label for x axis and y axis. **(8**$\%$)
+
+```{r, eval=TRUE}
+#Let w is the variable 'Outstate', x is 'Room.Board', y is 'Books', and z is 'Personal' 
+#of mynewdata
+w<-mynewdata$Outstate
+x<-mynewdata$Room.Board
+y<-mynewdata$Books
+z<-mynewdata$Personal
+
+#histogram plot
+hist(w,main="Histogram of Outstate",xlab="Outstate")
+hist(x,main="Histogram of Room.Board",xlab="Room.Board")
+hist(y,main="Histogram of Books",xlab="Books")
+hist(z,main="Histogram of Personal",xlab="Personal")
+```
+
+\textbf{Task 2: Linear regression (45$\%$)}
+
+2.1. Use mynewdata, do a linear regression fitting when outcome is "Grad.Rate" and predictors are "Private" and "Elite". Show the R output and report what you have learned from this output (you need to discuss significance, adjusted R-squared and p-value of F-statistics). **(6**$\%$).
+
+```{r, eval=TRUE}
+#using linear regression to fit the data and summary the output
+fitting<-lm(Grad.Rate~Private+Elite, data=mynewdata)
+summary(fitting)
+```
+
+**Significance of coefficients** - Both PrivateYes and EliteYes are highly significant with p-value \<2e-16 \*\*\* which is smaller than 0.05.
+
+**Adjusted R-squared** - The adjusted R-squared is 0.2235. This explains about 22.35 percent of the variability in Grad.Rate.
+
+**p-value of F-statistics** - The F-statistics is 101.6 and p-value is \<2.2e-16 which is smaller than 0.05. So, we reject the null hypothesis. The fitting model is better than the null model.
+
+2.2. Use the linear regression fitting result in 2.1, calculate the confidence intervals for the coefficients. Also give the prediction interval of "Grad.Rate" for a new data with Private="Yes" and Elite="No". **(4**$\%$)
+
+```{r, eval=TRUE}
+#confidence interval for the coefficients
+confint(fitting)
+
+#prediction value and prediction interval of "Grad.Rate" for a new data with Private="Yes" 
+#and Elite="No"
+predict(fitting, newdata=data.frame(Private="Yes", Elite="No"), interval="prediction")
+```
+
+2.3 Use mynewdata, do a multiple linear regression fitting when outcome is "Grad.Rate", all other variables as predictors. Show the R output and report what you have learned from this output (you need to discuss significance, adjusted R-squared and p-value of F-statistics). Is linear regression model in 2.3 better than linear regression in 2.1? Use ANOVA to justify your conclusion. **(14%)**
+
+```{r, eval=TRUE}
+#using linear regression to fit the data and summary the output
+fitting.full<-lm(Grad.Rate~., data=mynewdata)
+summary(fitting.full)
+
+#anova for simple and full model
+anova(fitting,fitting.full)
+```
+
+**Significance of coefficients** - In this fitting, all predictors except "Enroll", "F.Undergrad", "Books", "Terminal" and "S.F.Ratio" are significantly associated with "Grad.Rate".
+
+**Adjusted R-squared** - The adjusted R-squared is 0.4459. This explains about 44.59 percent of the variability in Grad.Rate.
+
+**p-value of F-statistics** - The p-value is \< 2.2e-16 which is smaller than 0.05. So, we reject Null hypothesis.The fitting model is better than the null model.
+
+**My interpretation from ANOVA table:**
+
+-   **Degrees of Freedom** - Model 2 has more degrees of freedom than Model 1. Model 2 is therefore more complicated.
+
+-   **Residual Sum of Squares (RSS)** - Model 2 has a smaller residual sum of squares (RSS), which suggests a better fit to the data.
+
+-   **F-statistic** - A model that fits the data better has a higher F-statistic.
+
+-   **p-value[Pr(\>F)]** - The p-value approaches zero quite closely. Model 2 is statistically significant as a result.
+
+**Conclusion** - Model 2 includes more set of predictor variables, which is significantly better at explaining the variation in the Grad.Rate compared to Model 1. The adjust R-squared is 0.4459 for multiple regression model, which is higher than 0.2235 in simple linear regression model. The higher R-squared, the more variability of outcome "Grad.Rate" explained so the multiple regression model is better than simple linear regression model. Therefore, based on the ANOVA results, Model 2 is better than Model 1.
+
+2.4. Use the diagnostic plots to look at the fitting of multiple linear regression in 2.3. Please comment what you have seen from those plots. **(7%)**
+
+```{r, eval=TRUE}
+#diagnostic plots
+plot(fitting.full)
+```
+
+**Residual plot** - The red line in the plot shows a slight curve indicating non-linearity between outcome and predictors.
+
+**Q-Q plot** - The residuals are not fully normal as all points do not align with the diagonal line.
+
+**Scale-Location plot** - The red line on the plot is roughly horizontal across the plot which satisfy homoscedasticity assumption (constant variance).
+
+**Leverage plot** - The plot shows that there are some high influence points.
+
+2.5. Use mynewdata, do a variable selection to choose the best model. You should use plots to justify how do you choose your best model. Use the selected predictors of your best model with outcome "Grad.Rate", do a linear regression fitting and plot the diagnostic plots for this fitting. You can use either exhaustive, or forward, or backward selection method. **(14%)**
+
+```{r, eval=TRUE}
+#load library(leaps)
+library(leaps)
+
+#Use regsubsets to get exhaustive search
+myfit.regsub<-regsubsets(Grad.Rate~., data=mynewdata, nvmax=16)
+myfit.regsub.sum<-summary(myfit.regsub)
+
+par(mfrow=c(2,2))
+
+#plot rss
+plot(myfit.regsub.sum$rss, xlab="Variable number", ylab="RSS", type="l")
+
+#plot adjusted R-square and maximum point
+plot(myfit.regsub.sum$adjr2, xlab="Variable number", ylab="Adjust R-squared", type="l")
+#check which model gives the maximum adjusted R-squared
+which.max(myfit.regsub.sum$adjr2)
+points(12, myfit.regsub.sum$adjr2[12], col="red", cex=2, pch=20)
+
+# plot cp and minimum point
+plot(myfit.regsub.sum$cp, xlab="Variable number", ylab="Cp", type="l")
+#check which model gives the minimum cp
+which.min(myfit.regsub.sum$cp)
+points(12, myfit.regsub.sum$cp[12], col="red", cex=2, pch=20)
+
+#plot BIC and minimum point
+plot(myfit.regsub.sum$bic, xlab="Variable number", ylab="BIC", type="l")
+#check which model gives the minimum bic
+which.min(myfit.regsub.sum$bic)
+points(8, myfit.regsub.sum$bic[8], col="red", cex=2, pch=20)
+
+#check the coefficients of model 8
+coef(myfit.regsub, 8)
+
+# use lm() and summary() to do linear regression model
+myfit.lm.best=lm(Grad.Rate~Private+Apps+P.Undergrad+Outstate+PhD+perc.alumni
+                 +Expend+Elite, data=mynewdata)
+summary(myfit.lm.best)
+plot(myfit.lm.best)
+```
+
+The best model we tend to choose is the one that uses the least number of variables. So, here we can look at the model selected by BIC, is model with **8 variables**. Out of all predictors, our best model selected by **exhaustive search** includes - **Private, Apps, P.Undergrad, Outstate, PhD, perc.alumni, Expend, Elite**.
+
+These 8 variables are used in the model and we reuse lm() to fit the data to get the information. From the results, we can see that all 8 variables are significant (variables are not all the same significant variables as the linear regression result at the beginning) but the model fitting is not the best.
+
+\textbf{Task 3: Open question (30$\%$)}
+
+Use mynewdata, discuss and perform any step(s) that you think that can improve the fitting in Task 2. You need to illustrate your work by using the R codes, output and discussion.
+
+```{r, eval=TRUE}
+#using lm(), poly() and summary() to do polynomial linear regression with degree 2
+myfit.pol<-lm(Grad.Rate~poly(Private,2,raw=T)+poly(Apps,2,raw=T)+poly(P.Undergrad,2,raw=T)
+              +poly(Outstate,2,raw=T)+poly(PhD,2,raw=T)+poly(Expend,2,raw=T)+poly(Elite,2,raw=T)
+              +poly(perc.alumni,2,raw=T),data=mynewdata)
+summary(myfit.pol)
+
+# diagnostic plots
+par(mfrow=c(2,2)) # make 2 by 2 plots
+plot(myfit.pol)
+
+#using lm(), poly() and summary() and add interaction
+myfit.pol.int<-lm(Grad.Rate~poly(Private,2,raw=T)*poly(Apps,2,raw=T)+poly(P.Undergrad,2,raw=T)
+              +poly(Outstate,2,raw=T)+poly(PhD,2,raw=T)+poly(Expend,2,raw=T)+poly(Elite,2,raw=T)
+              +poly(perc.alumni,2,raw=T),data=mynewdata)
+summary(myfit.pol.int)
+
+# diagnostic plots
+par(mfrow=c(2,2)) # make 2 by 2 plots
+plot(myfit.pol.int)
+```
+
+**Comments on polynomial linear regression results**: The fitting result given by polynomial (degree 2) regression is better than the fitting result given in Q2.5. We can see that comparing to the results of multiple linear model in Q2.5, the adjust R-squared is larger in polynomial fitting (0.4529\>0.4394) and diagnostics plots have better performance.
+
+**After interaction**: When new interaction terms included (given at the end of coefficients table), adjusted-R squared improved from 0.4529 to 0.4608, which indicating some improvement. Also most interaction terms are significant.
